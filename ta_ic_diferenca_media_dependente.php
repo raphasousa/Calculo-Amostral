@@ -2,28 +2,29 @@
     include("header.php");
     include("funcoes.php");
 
-    function calcula_tamanho ($prob, $des_padrao, $margem) {
-        $grau_lib = 39;
+    function calcula_tamanho ($alfa, $beta, $desv, $dif) {
+        $grau_lib = 99;
+        $beta_t = get_t(2*$beta, 2*$grau_lib);
         for ($i=0; $i<5; $i++) {
-            $t = get_t($prob, $grau_lib);
-            $tamanho = ($t*$des_padrao/$margem)*($t*$des_padrao/$margem);
+            $alfa_t = get_t($alfa, 2*$grau_lib);
+            $tamanho = (($desv*$desv)/($dif*$dif))*(($alfa_t+$beta_t)*($alfa_t+$beta_t));
             $grau_lib = $tamanho - 1;
         }
         return $tamanho;
     }
 
     if(isset($_POST['calcular'])){
-        if (!empty($_POST['r_confianca'])) {
-            if (is_numeric($_POST['t_erro'])) { 
-                if (is_numeric($_POST['t_desvio'])) {
-                    $prob = 1 - get_p($_POST['r_confianca']);
-                    $erro = $_POST['t_erro'];
-                    $desvio = $_POST['t_desvio'];
+        if (is_numeric($_POST['t_desvio'])) {
+            if (is_numeric($_POST['t_min_dif'])) { 
+                if (is_numeric($_POST['t_alfa'])) {
+                    if (is_numeric($_POST['t_beta'])) {
 
-                    if($erro < 0.001) echo "<h3 class='erro'>Valor inválido para a Margem de Erro.</h3>";
-                    else if($desvio < 0.001) echo "<h3 class='erro'>Valor inválido para o Desvio Padrão.</h3>";
-                    else {
-                        $n = calcula_tamanho($prob, $desvio, $erro);
+                        $desvio = $_POST['t_desvio'];
+                        $min_dif = $_POST['t_min_dif'];
+                        $alfa =  $_POST['t_alfa']/100;
+                        $beta =  $_POST['t_beta']/100;
+
+                        $n = calcula_tamanho($alfa, $beta, $desvio, $min_dif);
                         $n_anterior = $n;
 
                         if(isset($_POST['finita'])){
@@ -60,18 +61,18 @@
                             else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
                         }
                     }
+                    else echo "<h3 class='erro'>Valor inválido para o Beta.</h3>";
                 }
-                else echo "<h3 class='erro'>Valor inválido para o Desvio Padrão.</h3>";
+                else echo "<h3 class='erro'>Valor inválido para o Alfa.</h3>";
             }
-            else echo "<h3 class='erro'>Valor inválido para a Margem de Erro.</h3>";
+            else echo "<h3 class='erro'>Valor inválido para a Mínima Diferença.</h3>";
         }
-        else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
+        else echo "<h3 class='erro'>Valor inválido para o Desvio Padrão.</h3>";
     }
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="js/statcommon.js"></script>
     <style type="text/css">
         h3.erro{text-align: center; color: #FF0000;}
         h3.titulo{text-align: center; color: #666;}
@@ -94,32 +95,25 @@
     <div id="content">
         <br />
         <h2 class="titulo">Tamanho da Amostra</h2>
-        <h3 class="titulo">Intervalo de Confiança da Média</h3>
+        <h3 class="titulo">Diferença entre 2 Médias com Grupos Dependentes</h3>
         
         <form method="POST">
-            <?php 
-                if (!isset($_POST['r_confianca']) || $_POST['r_confianca'] == 95) {
-                    $z95 = true;
-                    $z99 = false;
-                }
-                else {
-                    $z95 = false;
-                    $z99 = true;
-                }
-            ?>
-            <label for="radios" title="Qual o nível de confiança você deseja na estimativa da população baseado no tamanho de amostra calculado.">Nível de Confiança:</label>
-            <label for="95" id="radios">95%</label>
-            <input type="radio" name="r_confianca" id="95" value="95" <?php echo ($z95) ? "checked" : null; ?>>
-            <label for="99">99%</label>
-            <input type="radio" name="r_confianca" id="99" value="99" <?php echo ($z99) ? "checked" : null; ?>><br>
-
-            <?php $erro = (!empty($_POST['t_erro']) ? $_POST['t_erro'] : ''); ?>
-            <label for="t_erro" title="Margem de erro que você admite entre a estimativa feita pela amostra e a real na população. É fornecida na mesma unidade de medida da variável objeto do cálculo.">Margem de Erro:</label>
-            <input type="number" id="t_erro" name="t_erro" min="0" step="any" value="<?php echo $erro; ?>"><br />
 
             <?php $desvio = (!empty($_POST['t_desvio']) ? $_POST['t_desvio'] : ''); ?>
-            <label for="t_desvio" title="O desvio padrão esperado que ocorra na população.">Desvio Padrão Estimado na População:</label>
+            <label for="t_desvio" title="O desvio padrão esperado que ocorra na população.">Estimativa do Desvio Padrão da Diferença:</label>
             <input type="number" id="t_desvio" name="t_desvio" min="0" step="any" value="<?php echo $desvio; ?>"><br />
+
+            <?php $min_dif = (!empty($_POST['t_min_dif']) ? $_POST['t_min_dif'] : ''); ?>
+            <label for="t_min_dif" title="Qual a mínima diferença esperada.">Mínima Diferença a ser Detectada:</label>
+            <input type="number" id="t_min_dif" name="t_min_dif" min="0" step="any" value="<?php echo $min_dif; ?>"><br />
+
+            <?php $alfa = (!empty($_POST['t_alfa']) ? $_POST['t_alfa'] : ''); ?>
+            <label for="t_alfa" title="É o valor do nível de significância que você irá adotar na pesquisa. O usual é 5%, porém você pode escolher qualquer valor entre 1% e 99%.">Alfa (%):</label>
+            <input type="number" id="t_alfa" name="t_alfa" min="1" max="99" step="any" value="<?php echo $alfa; ?>"><br />
+
+            <?php $beta = (!empty($_POST['t_beta']) ? $_POST['t_beta'] : ''); ?>
+            <label for="t_beta" title="É o valor do nível do erro beta que você admite na pesquisa. O usual é 20%, porém você pode escolher qualquer valor entre 1% e 50%.">Beta (%):</label>
+            <input type="number" id="t_beta" name="t_beta" min="1" max="50" step="any" value="<?php echo $beta; ?>"><br />
 
             <input type="submit" value="Calcular" name="calcular"><br />
 
@@ -155,6 +149,5 @@
             <br />
         </form>
     </div>
-    <br /><br />
 </body>
 </html>

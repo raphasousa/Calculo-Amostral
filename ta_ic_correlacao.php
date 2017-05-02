@@ -2,28 +2,23 @@
     include("header.php");
     include("funcoes.php");
 
-    function calcula_tamanho ($prob, $des_padrao, $margem) {
-        $grau_lib = 39;
-        for ($i=0; $i<5; $i++) {
-            $t = get_t($prob, $grau_lib);
-            $tamanho = ($t*$des_padrao/$margem)*($t*$des_padrao/$margem);
-            $grau_lib = $tamanho - 1;
-        }
-        return $tamanho;
-    }
-
     if(isset($_POST['calcular'])){
-        if (!empty($_POST['r_confianca'])) {
-            if (is_numeric($_POST['t_erro'])) { 
-                if (is_numeric($_POST['t_desvio'])) {
-                    $prob = 1 - get_p($_POST['r_confianca']);
-                    $erro = $_POST['t_erro'];
-                    $desvio = $_POST['t_desvio'];
+        if (is_numeric($_POST['t_correlacao'])) { 
+            if (is_numeric($_POST['t_alfa'])) {
+                if (is_numeric($_POST['t_beta'])) {
 
-                    if($erro < 0.001) echo "<h3 class='erro'>Valor inválido para a Margem de Erro.</h3>";
-                    else if($desvio < 0.001) echo "<h3 class='erro'>Valor inválido para o Desvio Padrão.</h3>";
+                    $correlacao = $_POST['t_correlacao'];
+
+                    if ($correlacao <= -1 || $correlacao >= 1) echo "<h3 class='erro'>O Coeficiente de Correlação deve ser maior que -1 e menor que 1.</h3>";
                     else {
-                        $n = calcula_tamanho($prob, $desvio, $erro);
+                        $alfa =  $_POST['t_alfa'];
+                        $beta =  $_POST['t_beta'];
+
+                        $z_alfa = get_z_tabela($alfa, "alfa");
+                        $z_beta = get_z_tabela($beta, "beta");
+                        $fator3 = 0.5 * log((1+$correlacao)/(1-$correlacao));
+
+                        $n = (($z_alfa+$z_beta)*($z_alfa+$z_beta))/($fator3*$fator3) + 3;
                         $n_anterior = $n;
 
                         if(isset($_POST['finita'])){
@@ -61,17 +56,16 @@
                         }
                     }
                 }
-                else echo "<h3 class='erro'>Valor inválido para o Desvio Padrão.</h3>";
+                else echo "<h3 class='erro'>Valor inválido para o Beta.</h3>";
             }
-            else echo "<h3 class='erro'>Valor inválido para a Margem de Erro.</h3>";
+            else echo "<h3 class='erro'>Valor inválido para o Alfa.</h3>";
         }
-        else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
+        else echo "<h3 class='erro'>Valor inválido para o Coeficiente de Correlação.</h3>";
     }
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="js/statcommon.js"></script>
     <style type="text/css">
         h3.erro{text-align: center; color: #FF0000;}
         h3.titulo{text-align: center; color: #666;}
@@ -94,32 +88,21 @@
     <div id="content">
         <br />
         <h2 class="titulo">Tamanho da Amostra</h2>
-        <h3 class="titulo">Intervalo de Confiança da Média</h3>
+        <h3 class="titulo">Correlação entre 2 Variáveis</h3>
         
         <form method="POST">
-            <?php 
-                if (!isset($_POST['r_confianca']) || $_POST['r_confianca'] == 95) {
-                    $z95 = true;
-                    $z99 = false;
-                }
-                else {
-                    $z95 = false;
-                    $z99 = true;
-                }
-            ?>
-            <label for="radios" title="Qual o nível de confiança você deseja na estimativa da população baseado no tamanho de amostra calculado.">Nível de Confiança:</label>
-            <label for="95" id="radios">95%</label>
-            <input type="radio" name="r_confianca" id="95" value="95" <?php echo ($z95) ? "checked" : null; ?>>
-            <label for="99">99%</label>
-            <input type="radio" name="r_confianca" id="99" value="99" <?php echo ($z99) ? "checked" : null; ?>><br>
 
-            <?php $erro = (!empty($_POST['t_erro']) ? $_POST['t_erro'] : ''); ?>
-            <label for="t_erro" title="Margem de erro que você admite entre a estimativa feita pela amostra e a real na população. É fornecida na mesma unidade de medida da variável objeto do cálculo.">Margem de Erro:</label>
-            <input type="number" id="t_erro" name="t_erro" min="0" step="any" value="<?php echo $erro; ?>"><br />
+            <?php $correlacao = (!empty($_POST['t_correlacao']) ? $_POST['t_correlacao'] : ''); ?>
+            <label for="t_correlacao" title="O Coeficiente de Correlação de Pearson recebe valores entre -1 e 1.">Coeficiente de Correlação:</label>
+            <input type="number" id="t_correlacao" name="t_correlacao" min="-1" max="1" step="any" value="<?php echo $correlacao; ?>"><br />
 
-            <?php $desvio = (!empty($_POST['t_desvio']) ? $_POST['t_desvio'] : ''); ?>
-            <label for="t_desvio" title="O desvio padrão esperado que ocorra na população.">Desvio Padrão Estimado na População:</label>
-            <input type="number" id="t_desvio" name="t_desvio" min="0" step="any" value="<?php echo $desvio; ?>"><br />
+            <?php $alfa = (!empty($_POST['t_alfa']) ? $_POST['t_alfa'] : ''); ?>
+            <label for="t_alfa" title="É o valor do nível de significância que você irá adotar na pesquisa. O usual é 5%, porém você pode escolher qualquer valor entre 1% e 99%.">Alfa (%):</label>
+            <input type="number" id="t_alfa" name="t_alfa" min="1" max="99" step="any" value="<?php echo $alfa; ?>"><br />
+
+            <?php $beta = (!empty($_POST['t_beta']) ? $_POST['t_beta'] : ''); ?>
+            <label for="t_beta" title="É o valor do nível do erro beta que você admite na pesquisa. O usual é 20%, porém você pode escolher qualquer valor entre 1% e 50%.">Beta (%):</label>
+            <input type="number" id="t_beta" name="t_beta" min="1" max="99" step="any" value="<?php echo $beta; ?>"><br />
 
             <input type="submit" value="Calcular" name="calcular"><br />
 
@@ -155,6 +138,5 @@
             <br />
         </form>
     </div>
-    <br /><br />
 </body>
 </html>

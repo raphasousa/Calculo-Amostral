@@ -67,6 +67,9 @@
 			    <li><a href="ta_ic_proporcao.php">Intervalo de Confiança de uma Proporção</a></li> 
 			    <li><a href="ta_ic_media.php">Intervalo de Confiança da Média</a></li> 
 			    <li><a href="ta_ic_diferenca_proporcao.php">Intervalo de Confiança - Diferença entre 2 Proporções</a></li> 
+			    <li><a href="ta_ic_diferenca_media_independente.php">Diferença entre 2 Médias com Grupos Independentes</a></li> 
+			    <li><a href="ta_ic_diferenca_media_dependente.php">Diferença entre 2 Médias com Grupos Dependentes</a></li> 
+			    <li><a href="ta_ic_correlacao.php">Correlação entre 2 Variáveis</a></li> 
 		  	</ul>
 	  	</div>
 	  	<br />
