@@ -1,29 +1,24 @@
 <?php
-	include("header.php");
+    include("header.php");
     include("funcoes.php");
 
     if(isset($_POST['calcular'])){
-        if (is_numeric($_POST['t_prop_1'])) {
-            if (is_numeric($_POST['t_prop_2'])) { 
-                if (is_numeric($_POST['t_alfa'])) {
-                    if (is_numeric($_POST['t_beta'])) {
+        if (!empty($_POST['r_confianca'])) {
+            if (is_numeric($_POST['t_sensibilidade'])) { 
+                if (is_numeric($_POST['t_prevalencia'])) {
+                    if (is_numeric($_POST['t_erro'])) {
+                        $z = get_z($_POST['r_confianca']);
+                        $erro = $_POST['t_erro']/100;
+                        $sensibilidade = $_POST['t_sensibilidade']/100;
+                        $prevalencia = $_POST['t_prevalencia']/100;
 
-                        $prop_1 = $_POST['t_prop_1']/100;
-                        $prop_2 = $_POST['t_prop_2']/100;
-
-                        if ($prop_1 == $prop_2) echo "<h3 class='erro'>Proporção 1 deve ser diferente da Proporção 2.</h3>";
+                        if ($erro == 0)
+                            echo "<h3 class='erro'>A Margem de Erro deve ser maior que 0.</h3>";
+                        else if ($prevalencia == 0)
+                            echo "<h3 class='erro'>A Prevalência da Doença deve ser maior que 0.</h3>";
                         else {
-                            $z_alfa =  get_z_tabela($_POST['t_alfa'], "alfa");
-                            $z_beta =  get_z_tabela($_POST['t_beta'], "beta");
 
-                            $delta = abs($prop_2 - $prop_1);
-                            $p = ($prop_1 + $prop_2)/2;
-                            $q = 1 - $p;
-                            $q1 = 1 - $prop_1;
-                            $q2 = 1 - $prop_2;
-                            
-                            $parte_cima = ($z_alfa*sqrt(2*$p*$q) + $z_beta*sqrt($prop_1*$q1 + $prop_2*$q2));
-                            $n = ($parte_cima*$parte_cima) / ($delta*$delta);
+                            $n = ($z*$z*$sensibilidade*(1-$sensibilidade))/($erro*$erro*$prevalencia);
                             $n_anterior = $n;
 
                             if(isset($_POST['finita'])){
@@ -61,18 +56,19 @@
                             }
                         }
                     }
-                    else echo "<h3 class='erro'>Valor inválido para o Beta.</h3>";
+                    else echo "<h3 class='erro'>Valor inválido para a Margem de Erro.</h3>";
                 }
-                else echo "<h3 class='erro'>Valor inválido para o Alfa.</h3>";
+                else echo "<h3 class='erro'>Valor inválido para a Prevalência da Doença.</h3>";
             }
-            else echo "<h3 class='erro'>Valor inválido para a Proporção 2.</h3>";
+            else echo "<h3 class='erro'>Valor inválido para a Sensibilidade Esperada.</h3>";
         }
-        else echo "<h3 class='erro'>Valor inválido para a Proporção 1.</h3>";
+        else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
     }
 ?>
 <!DOCTYPE html>
 <html>
 <head>
+    <script src="js/statcommon.js"></script>
     <style type="text/css">
         h3.erro{text-align: center; color: #FF0000;}
         h3.titulo{text-align: center; color: #666;}
@@ -95,25 +91,36 @@
     <div id="content">
         <br />
         <h2 class="titulo">Tamanho da Amostra</h2>
-        <h3 class="titulo">Intervalo de Confiança - Diferença entre 2 Proporções</h3>
+        <h3 class="titulo">Estimativa da Sensibilidade</h3>
         
         <form method="POST">
+            <?php 
+                if (!isset($_POST['r_confianca']) || $_POST['r_confianca'] == 95) {
+                    $z95 = true;
+                    $z99 = false;
+                }
+                else {
+                    $z95 = false;
+                    $z99 = true;
+                }
+            ?>
+            <label for="radios" title="Qual o nível de confiança você deseja na estimativa da população baseado no tamanho de amostra calculado.">Nível de Confiança:</label>
+            <label for="95" id="radios">95%</label>
+            <input type="radio" name="r_confianca" id="95" value="95" <?php echo ($z95) ? "checked" : null; ?>>
+            <label for="99">99%</label>
+            <input type="radio" name="r_confianca" id="99" value="99" <?php echo ($z99) ? "checked" : null; ?>><br>
 
-            <?php $prop_1 = (!empty($_POST['t_prop_1']) ? $_POST['t_prop_1'] : '0'); ?>
-            <label for="t_prop_1" title="Qual a proporção que se espera encontrar na população 1. Você pode entrar qualquer valor entre 0% e 100%.">Estimativa da Proporção 1 (%):</label>
-            <input type="number" id="t_prop_1" name="t_prop_1" min="0" max="100" step="any" value="<?php echo $prop_1; ?>"><br />
+            <?php $sensibilidade = (!empty($_POST['t_sensibilidade']) ? $_POST['t_sensibilidade'] : '0'); ?>
+            <label for="t_sensibilidade" title="Qual o valor esperado para a sensibilidade na população.">Sensibilidade Esperada (%):</label>
+            <input type="number" id="t_sensibilidade" name="t_sensibilidade" min="0" max="100" step="any" value="<?php echo $sensibilidade; ?>"><br />
 
-            <?php $prop_2 = (!empty($_POST['t_prop_2']) ? $_POST['t_prop_2'] : '0'); ?>
-            <label for="t_prop_2" title="Qual a proporção que se espera encontrar na população 2. Você pode entrar qualquer valor entre 0% e 100%.">Estimativa da Proporção 2 (%):</label>
-            <input type="number" id="t_prop_2" name="t_prop_2" min="0" max="100" step="any" value="<?php echo $prop_2; ?>"><br />
+            <?php $prevalencia = (!empty($_POST['t_prevalencia']) ? $_POST['t_prevalencia'] : '0'); ?>
+            <label for="t_prevalencia" title="Porcentagem da prevalência da doença.">Prevalência da Doença (%):</label>
+            <input type="number" id="t_prevalencia" name="t_prevalencia" min="0" max="100" step="any" value="<?php echo $prevalencia; ?>"><br />
 
-            <?php $alfa = (!empty($_POST['t_alfa']) ? $_POST['t_alfa'] : ''); ?>
-            <label for="t_alfa" title="É o valor do nível de significância que você irá adotar na pesquisa. O usual é 5%, porém você pode escolher qualquer valor entre 1% e 99%.">Alfa (%):</label>
-            <input type="number" id="t_alfa" name="t_alfa" min="1" max="99" step="any" value="<?php echo $alfa; ?>"><br />
-
-            <?php $beta = (!empty($_POST['t_beta']) ? $_POST['t_beta'] : ''); ?>
-            <label for="t_beta" title="É o valor do nível do erro beta que você admite na pesquisa. O usual é 20%, porém você pode escolher qualquer valor entre 1% e 99%.">Beta (%):</label>
-            <input type="number" id="t_beta" name="t_beta" min="1" max="99" step="any" value="<?php echo $beta; ?>"><br />
+            <?php $erro = (!empty($_POST['t_erro']) ? $_POST['t_erro'] : '0'); ?>
+            <label for="t_erro" title="Porcentagem máxima de erro que você admite entre a estimativa feita pela amostra e a real na população.">Margem de Erro (%):</label>
+            <input type="number" id="t_erro" name="t_erro" min="0" max="100" step="any" value="<?php echo $erro; ?>"><br />
 
             <input type="submit" value="Calcular" name="calcular"><br />
 
@@ -149,5 +156,6 @@
             <br />
         </form>
     </div>
+    <br /><br />
 </body>
 </html>

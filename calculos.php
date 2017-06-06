@@ -66,10 +66,15 @@
 			<ul> 
 			    <li><a href="ta_ic_proporcao.php">Intervalo de Confiança de uma Proporção</a></li> 
 			    <li><a href="ta_ic_media.php">Intervalo de Confiança da Média</a></li> 
-			    <li><a href="ta_ic_diferenca_proporcao.php">Intervalo de Confiança - Diferença entre 2 Proporções</a></li> 
-			    <li><a href="ta_ic_diferenca_media_independente.php">Diferença entre 2 Médias com Grupos Independentes</a></li> 
-			    <li><a href="ta_ic_diferenca_media_dependente.php">Diferença entre 2 Médias com Grupos Dependentes</a></li> 
-			    <li><a href="ta_ic_correlacao.php">Correlação entre 2 Variáveis</a></li> 
+			    <li><a href="ta_diferenca_proporcao.php">Diferença entre 2 Proporções</a></li> 
+			    <li><a href="ta_diferenca_media_independente.php">Diferença entre 2 Médias com Grupos Independentes</a></li> 
+			    <li><a href="ta_diferenca_media_dependente.php">Diferença entre 2 Médias com Grupos Dependentes</a></li> 
+			    <li><a href="ta_correlacao.php">Correlação entre 2 Variáveis</a></li> 
+			    <li><a href="ta_estimativa_odds_ratio.php">Estimativa do Odds Ratio</a></li> 
+			    <li><a href="ta_odds_ratio_diferente_de_1.php">Provar que Odds Ratio é Diferente de 1</a></li> 
+			    <li><a href="ta_estimativa_risco_relativo.php">Estimativa do Risco Relativo</a></li> 
+			    <li><a href="ta_estimativa_sensibilidade.php">Estimativa da Sensibilidade</a></li> 
+			    <li><a href="ta_estimativa_especificidade.php">Estimativa da Especificidade</a></li> 
 		  	</ul>
 	  	</div>
 	  	<br />

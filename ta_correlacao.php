@@ -8,12 +8,16 @@
                 if (is_numeric($_POST['t_beta'])) {
 
                     $correlacao = $_POST['t_correlacao'];
+                    $alfa =  $_POST['t_alfa'];
+                    $beta =  $_POST['t_beta'];
 
-                    if ($correlacao <= -1 || $correlacao >= 1) echo "<h3 class='erro'>O Coeficiente de Correlação deve ser maior que -1 e menor que 1.</h3>";
+                    if ($alfa == 0 || $alfa == 100)
+                        echo "<h3 class='erro'>O Alfa deve ser maior que 0 e menor que 100.</h3>";
+                    else if ($beta == 0 || $beta == 100)
+                        echo "<h3 class='erro'>O Beta deve ser maior que 0 e menor que 100.</h3>";
+                    else if ($correlacao <= -1 || $correlacao >= 1) 
+                        echo "<h3 class='erro'>O Coeficiente de Correlação deve ser maior que -1 e menor que 1.</h3>";
                     else {
-                        $alfa =  $_POST['t_alfa'];
-                        $beta =  $_POST['t_beta'];
-
                         $z_alfa = get_z_tabela($alfa, "alfa");
                         $z_beta = get_z_tabela($beta, "beta");
                         $fator3 = 0.5 * log((1+$correlacao)/(1-$correlacao));
@@ -93,16 +97,16 @@
         <form method="POST">
 
             <?php $correlacao = (!empty($_POST['t_correlacao']) ? $_POST['t_correlacao'] : ''); ?>
-            <label for="t_correlacao" title="O Coeficiente de Correlação de Pearson recebe valores entre -1 e 1.">Coeficiente de Correlação:</label>
+            <label for="t_correlacao" title="Qual o valor do menor coeficiente de correlação, que se existir entre as duas variáveis estudadas, é importante provar que ele existe. Recebe valores entre -1 e 1.">Coeficiente de Correlação:</label>
             <input type="number" id="t_correlacao" name="t_correlacao" min="-1" max="1" step="any" value="<?php echo $correlacao; ?>"><br />
 
             <?php $alfa = (!empty($_POST['t_alfa']) ? $_POST['t_alfa'] : ''); ?>
-            <label for="t_alfa" title="É o valor do nível de significância que você irá adotar na pesquisa. O usual é 5%, porém você pode escolher qualquer valor entre 1% e 99%.">Alfa (%):</label>
-            <input type="number" id="t_alfa" name="t_alfa" min="1" max="99" step="any" value="<?php echo $alfa; ?>"><br />
+            <label for="t_alfa" title="É o valor do nível de significância que você irá adotar na pesquisa. O usual é 5%, porém você pode escolher qualquer valor entre 0% e 100%.">Alfa (%):</label>
+            <input type="number" id="t_alfa" name="t_alfa" min="0" max="100" step="any" value="<?php echo $alfa; ?>"><br />
 
             <?php $beta = (!empty($_POST['t_beta']) ? $_POST['t_beta'] : ''); ?>
-            <label for="t_beta" title="É o valor do nível do erro beta que você admite na pesquisa. O usual é 20%, porém você pode escolher qualquer valor entre 1% e 50%.">Beta (%):</label>
-            <input type="number" id="t_beta" name="t_beta" min="1" max="99" step="any" value="<?php echo $beta; ?>"><br />
+            <label for="t_beta" title="É o valor do nível do erro beta que você admite na pesquisa. O usual é 20%, porém você pode escolher qualquer valor entre 0% e 100%.">Beta (%):</label>
+            <input type="number" id="t_beta" name="t_beta" min="0" max="100" step="any" value="<?php echo $beta; ?>"><br />
 
             <input type="submit" value="Calcular" name="calcular"><br />
 

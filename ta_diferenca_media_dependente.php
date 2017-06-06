@@ -1,13 +1,13 @@
 <?php
-	include("header.php");
+    include("header.php");
     include("funcoes.php");
 
     function calcula_tamanho ($alfa, $beta, $desv, $dif) {
         $grau_lib = 99;
+        $beta_t = get_t(2*$beta, 2*$grau_lib);
         for ($i=0; $i<5; $i++) {
             $alfa_t = get_t($alfa, 2*$grau_lib);
-            $beta_t = get_t(2*$beta, 2*$grau_lib);
-            $tamanho = (2*($desv*$desv)/($dif*$dif))*(($alfa_t+$beta_t)*($alfa_t+$beta_t));
+            $tamanho = (($desv*$desv)/($dif*$dif))*(($alfa_t+$beta_t)*($alfa_t+$beta_t));
             $grau_lib = $tamanho - 1;
         }
         return $tamanho;
@@ -24,41 +24,47 @@
                         $alfa =  $_POST['t_alfa']/100;
                         $beta =  $_POST['t_beta']/100;
 
-                        $n = calcula_tamanho($alfa, $beta, $desvio, $min_dif);
-                        $n_anterior = $n;
+                        if ($alfa == 0 || $alfa == 1)
+                            echo "<h3 class='erro'>O Alfa deve ser maior que 0 e menor que 100.</h3>";
+                        else if ($beta == 0)
+                            echo "<h3 class='erro'>O Beta deve ser maior que 0.</h3>";
+                        else {
+                            $n = calcula_tamanho($alfa, $beta, $desvio, $min_dif);
+                            $n_anterior = $n;
 
-                        if(isset($_POST['finita'])){
-                            if (is_numeric($_POST['t_finita'])) {
-                                $finita = $_POST['t_finita'];
-                                if($finita < 1) echo "<h3 class='erro'>Valor inválido para a População.</h3>";
-                                else {
-                                    $n_finita = $n_anterior/(1+($n_anterior-1)/$finita);
-                                    $n_anterior = $n_finita;
+                            if(isset($_POST['finita'])){
+                                if (is_numeric($_POST['t_finita'])) {
+                                    $finita = $_POST['t_finita'];
+                                    if($finita < 1) echo "<h3 class='erro'>Valor inválido para a População.</h3>";
+                                    else {
+                                        $n_finita = $n_anterior/(1+($n_anterior-1)/$finita);
+                                        $n_anterior = $n_finita;
+                                    }
                                 }
+                                else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
                             }
-                            else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
-                        }
-                        if(isset($_POST['desenho'])){
-                            if (is_numeric($_POST['t_desenho'])) {
-                                $desenho = $_POST['t_desenho'];
-                                if($desenho < 1 || $desenho > 9) echo "<h3 class='erro'>Valor inválido para o Efeito do Desenho.</h3>";
-                                else {
-                                    $n_desenho = $n_anterior*$desenho;
-                                    $n_anterior = $n_desenho;
+                            if(isset($_POST['desenho'])){
+                                if (is_numeric($_POST['t_desenho'])) {
+                                    $desenho = $_POST['t_desenho'];
+                                    if($desenho < 1 || $desenho > 9) echo "<h3 class='erro'>Valor inválido para o Efeito do Desenho.</h3>";
+                                    else {
+                                        $n_desenho = $n_anterior*$desenho;
+                                        $n_anterior = $n_desenho;
+                                    }
                                 }
+                                else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
                             }
-                            else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
-                        }
-                        if(isset($_POST['perda'])){
-                            if (is_numeric($_POST['t_perda'])) {
-                                $perda = $_POST['t_perda']/100;
-                                if($perda < 0 || $perda > 100) echo "<h3 class='erro'>Valor inválido para a Perda de Elementos.</h3>";
-                                else {
-                                    $n_perda = $n_anterior/(1-$perda);
-                                    $n_anterior = $n_perda;
+                            if(isset($_POST['perda'])){
+                                if (is_numeric($_POST['t_perda'])) {
+                                    $perda = $_POST['t_perda']/100;
+                                    if($perda < 0 || $perda > 100) echo "<h3 class='erro'>Valor inválido para a Perda de Elementos.</h3>";
+                                    else {
+                                        $n_perda = $n_anterior/(1-$perda);
+                                        $n_anterior = $n_perda;
+                                    }
                                 }
+                                else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
                             }
-                            else echo "<h3 class='erro'>Preencha todos os campos.</h3>";
                         }
                     }
                     else echo "<h3 class='erro'>Valor inválido para o Beta.</h3>";
@@ -95,25 +101,25 @@
     <div id="content">
         <br />
         <h2 class="titulo">Tamanho da Amostra</h2>
-        <h3 class="titulo">Diferença entre 2 Médias com Grupos Independentes</h3>
+        <h3 class="titulo">Diferença entre 2 Médias com Grupos Dependentes</h3>
         
         <form method="POST">
 
             <?php $desvio = (!empty($_POST['t_desvio']) ? $_POST['t_desvio'] : ''); ?>
-            <label for="t_desvio" title="O desvio padrão esperado que ocorra na população.">Estimativa do Desvio Padrão:</label>
+            <label for="t_desvio" title="Qual o valor estimado do desvio padrão da diferença entre as duas populações estudadas. Não é o desvio padrão da população, mas sim da diferença entre as duas populações. Pode ser estimado pela literatura ou por um piloto.">Estimativa do Desvio Padrão da Diferença:</label>
             <input type="number" id="t_desvio" name="t_desvio" min="0" step="any" value="<?php echo $desvio; ?>"><br />
 
             <?php $min_dif = (!empty($_POST['t_min_dif']) ? $_POST['t_min_dif'] : ''); ?>
-            <label for="t_min_dif" title="Qual a mínima diferença esperada.">Mínima Diferença a ser Detectada:</label>
+            <label for="t_min_dif" title="Qual a menor diferença entre as duas populações que tem relevância clínica e, portanto, é importante provar que existe diferença entre as populações.">Mínima Diferença a ser Detectada:</label>
             <input type="number" id="t_min_dif" name="t_min_dif" min="0" step="any" value="<?php echo $min_dif; ?>"><br />
 
             <?php $alfa = (!empty($_POST['t_alfa']) ? $_POST['t_alfa'] : ''); ?>
-            <label for="t_alfa" title="É o valor do nível de significância que você irá adotar na pesquisa. O usual é 5%, porém você pode escolher qualquer valor entre 1% e 99%.">Alfa (%):</label>
-            <input type="number" id="t_alfa" name="t_alfa" min="1" max="99" step="any" value="<?php echo $alfa; ?>"><br />
+            <label for="t_alfa" title="É o valor do nível de significância que você irá adotar na pesquisa. O usual é 5%, porém você pode escolher qualquer valor entre 0% e 100%.">Alfa (%):</label>
+            <input type="number" id="t_alfa" name="t_alfa" min="0" max="100" step="any" value="<?php echo $alfa; ?>"><br />
 
             <?php $beta = (!empty($_POST['t_beta']) ? $_POST['t_beta'] : ''); ?>
-            <label for="t_beta" title="É o valor do nível do erro beta que você admite na pesquisa. O usual é 20%, porém você pode escolher qualquer valor entre 1% e 50%.">Beta (%):</label>
-            <input type="number" id="t_beta" name="t_beta" min="1" max="50" step="any" value="<?php echo $beta; ?>"><br />
+            <label for="t_beta" title="É o valor do nível do erro beta que você admite na pesquisa. O usual é 20%, porém você pode escolher qualquer valor entre 0% e 50%.">Beta (%):</label>
+            <input type="number" id="t_beta" name="t_beta" min="0" max="50" step="any" value="<?php echo $beta; ?>"><br />
 
             <input type="submit" value="Calcular" name="calcular"><br />
 
